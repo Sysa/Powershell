@@ -1,0 +1,545 @@
+<script src="jquery-ui-1.11.4.custom/external/jquery/jquery.js"></script>
+<script src="jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+
+<link href="jquery-ui-1.11.4.custom/jquery-ui.css" rel="stylesheet">
+
+<style>
+
+div {
+margin:5 3 7 3
+}
+
+div.system {
+	color: gray;
+	font-size: 11px;
+	font-style: italic;
+}
+
+#datepicker{
+	display:none;
+}
+
+.task, .comment, .project{
+	font-size: 12px !important; 
+}
+
+.project{
+	color: #000000;
+}
+
+div.archivedtrue, div.completedtrue {
+	color: gray;
+	font-size: 12px !important; 
+}
+
+div.task_info{
+	color: darkblue;
+	font-size: 11px;
+	text-align:right;
+}
+
+div.project_info{
+	display:none;
+	color: darkblue;
+	font-size: 11px;
+	border-bottom: 1px solid darkblue;
+	border-left: 1px solid darkblue;
+	border-right: 1px solid darkblue;
+	border-radius: 10px;
+	padding: 5 5 5 5;
+}
+div.project_info > p{
+	margin: 0 0 0 0;
+}
+
+
+.loader {
+position:absolute;
+display:none;
+  margin: 60px auto;
+  font-size: 10px;
+  position: relative;
+  text-indent: -9999em;
+  border-top: 1.1em solid rgba(200, 200, 200, 0.5);
+  border-right: 1.1em solid rgba(200, 200, 200, 0.5);
+  border-bottom: 1.1em solid rgba(200, 200, 200, 0.5);
+  border-left: 1.1em solid #00ffbb;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation: load8 1.1s infinite linear;
+  animation: load8 1.1s infinite linear;
+}
+.loader,
+.loader:after {
+  border-radius: 50%;
+  width: 10em;
+  height: 10em;
+}
+@-webkit-keyframes load8 {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes load8 {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+</style>
+
+<script>
+
+var current_date=new Date();
+var cday=current_date.getDate();
+var cmonth=current_date.getMonth()+1;
+var cyear=current_date.getFullYear();
+var FullDate=cday+'.'+cmonth+'.'+cyear;
+var shift_date_index=1;
+
+console.log(FullDate);
+
+
+
+$(function() {
+
+	//$.ajaxSetup({
+	//	beforeSend: function(xhr, settings) {
+        //var element = settings.context.element;
+        //var event = settings.context.event;
+
+        // Do something with 'element' and 'event'...
+		
+	//	$(".loader").show();
+		
+    //    }
+	//});
+
+	//$(".loader").show();
+	
+	
+
+
+    $( "#datepicker" ).datepicker({
+		dateFormat: 'dd.mm.yy',
+		//showButtonPanel: true,
+		onSelect: function(dateText) 
+		{
+			$('#projects').html("");
+			
+			console.log(dateText);
+			FullDate=dateText;
+			Get_data_from_file();
+			//$("#datepicker").toggle("slide", { direction: "left" }, 1000);
+			$("#projects").accordion( "refresh" );
+		}
+    });
+	
+	
+	Get_data_from_file();
+	
+	//$(".project").button();
+	
+	$("#tasks").accordion({
+		heightStyle: "content",
+		active: false,
+		collapsible: true
+	});
+	
+	
+	
+	$("#projects").accordion({
+		heightStyle: "content",
+		active: 1337,
+		collapsible: false
+	});
+
+	
+});
+  
+  // show_datepicker
+
+  //get_user_info();
+/*function get_user_info()
+{
+	$.getJSON(FullDate+"/users.json", function(json) {
+		
+		array_of_users_info = [];
+		
+		for(var index=0; index<json.data.length; index++)
+		{
+			array_of_users_info.push({user_id:json.data[index].id,user_name:json.data[index].name})
+		}
+		console.log(array_of_users_info);
+		var result = $.grep(array_of_users_info, function(e){ return array_of_users_info.user_id == '47176512037569'; });
+		console.log(result);
+		
+	}).fail(function(jqXHR, textStatus, errorThrown) { alert('users error! ' + textStatus); });
+	
+}
+*/
+  
+function Get_data_from_file(){
+
+
+	//all streams set to one stream, to accept all variables as visible;
+	$.ajaxSetup( { "async": false } );
+	//console.log(FullDate);
+	$.getJSON(FullDate+"/projects.json", function(json) {
+		//console.log(json.data[0].name); // this will show the info it in firebug console
+		
+		
+	
+		
+		$('#projects').html("");
+		$('#tasks').html("");
+		for(var pr_i=0; pr_i<json.data.length; pr_i++)
+		{
+			
+			$.getJSON(FullDate+"/projects/"+json.data[pr_i].id+"/project_info.json", function(jsonAdditional) {
+			
+				
+				additional_project_info_html="<div id='pr_info_id"+json.data[pr_i].id+"' class='project_info'>";
+				// created_at due_date followers(ARR)  modified_at notes owner.name
+				
+				if(jsonAdditional.data.owner!=null)
+				{additional_project_info_html+="<p>Author:"+jsonAdditional.data.owner.name+"</p>";}
+				
+				if(jsonAdditional.data.created_at!=null)
+				{additional_project_info_html+="<p>Created:"+jsonAdditional.data.created_at+"</p>";}
+				
+				if(jsonAdditional.data.modified_at!=null)
+				{additional_project_info_html+="<p>Modified:"+jsonAdditional.data.modified_at+"</p>";}
+				
+				if(jsonAdditional.data.due_date!=null)
+				{additional_project_info_html+="<p>Due date:"+jsonAdditional.data.due_date+"</p>";}
+				
+				if(jsonAdditional.data.notes!="")
+				{additional_project_info_html+="<p>Description:"+jsonAdditional.data.notes+"</p>";}
+				
+				
+				
+				if(jsonAdditional.data.followers.length>0)
+				{
+					additional_project_info_html+="<p>Followers: ";
+					for(var p_f_i=0; p_f_i<jsonAdditional.data.followers.length; p_f_i++)
+					{
+						//$("#project_followers").append(jsonAdditional.data.followers[p_f_i].name);
+						additional_project_info_html+=" "+jsonAdditional.data.followers[p_f_i].name+";";
+					}
+					additional_project_info_html+="</p>";
+				}
+				
+				additional_project_info_html+="</div>";
+							
+			}).fail(function(jqXHR, textStatus, errorThrown) { console.log('Additional info loading failed. ' + textStatus); });
+			
+				
+
+				
+				if(json.data[pr_i].color)
+				{
+					json.data[pr_i].color = json.data[pr_i].color.replace(/-/g, "")
+				}
+				
+				var pre_html_tags="<div style='border-left:20px solid "+json.data[pr_i].color+"' class='project archived"+json.data[pr_i].archived+"' id="+json.data[pr_i].id+">";
+				var after_html_tags="</div>"+additional_project_info_html;
+				
+				if(json.data[pr_i].archived==true)
+				{
+					$('#projects').append(pre_html_tags+json.data[pr_i].name+after_html_tags);
+				}
+				else
+				{
+					$('#projects').prepend(pre_html_tags+json.data[pr_i].name+after_html_tags);
+				}
+			
+			
+			//console.log(json.data[pr_i]);
+			$("#LoadedDate").html("Backup loaded for date: "+FullDate);
+		}
+		
+		//$('#projects').html(json.data[0].name);
+			//$('#projects').append(json.data[2].name);
+		
+	}).fail(function(jqXHR, textStatus, errorThrown) {
+
+		current_date=new Date();
+		cday=current_date.getDate()-shift_date_index;
+		cmonth=current_date.getMonth()+1;
+		cyear=current_date.getFullYear();
+		FullDate=cday+'.'+cmonth+'.'+cyear;
+		
+		console.log(FullDate);
+		shift_date_index+=1;
+		
+		
+		if(shift_date_index<30)
+		{
+			Get_data_from_file();
+		}
+		else
+		{
+			alert('Backup for last 30 days not found! Maybe 1st day of new month. Run schedule task for asana backup (basana).' + textStatus);
+		}
+		
+
+	});
+	
+	//$(".loader").hide();
+	
+}
+
+
+function get_task_by_project_id(pr_id)
+{
+
+	$("#tasks").accordion( "refresh" );
+	$("#projects").accordion( "refresh" );	
+	$.ajaxSetup( { "async": false } );
+	
+	//show project info:(before accordion)
+	//$(".project_info").hide();
+	//$("#pr_info_id"+pr_id).fadeIn();
+	
+
+	$.getJSON(FullDate+"/projects/"+pr_id+"/tasks.json", function(json) {
+				
+		//$('#tasks').html("");
+		if(json.data.length>0)
+		{
+			for(var t_i=0; t_i<json.data.length; t_i++)
+			{
+			
+				var pre_html_tags="<div class='task completed"+json.data[t_i].completed+"' id="+json.data[t_i].id+">";
+				var after_html_tags="</div><div id='story"+json.data[t_i].id+"' class='task_expand_stories'></div>";
+			
+				if(json.data[t_i].completed==true)
+				{
+					$('#tasks').append(pre_html_tags+"<strike>"+json.data[t_i].name+"</strike>"+after_html_tags);
+				}
+				else
+				{
+					$('#tasks').prepend(pre_html_tags+json.data[t_i].name+after_html_tags);
+				}
+				//console.log(json.data[t_i]);
+			}
+		}
+		else
+		{
+			$('#tasks').html("Congratulations! No uncompleted tasks here.");
+		}
+		//$('#projects').html(json.data[0].name);
+			//$('#projects').append(json.data[2].name);
+		
+		//$("#tasks").accordion();
+		
+	}).fail(function(jqXHR, textStatus, errorThrown) { alert('Tasks not found! ' + textStatus); });
+	
+
+}
+
+
+
+function get_task_stories_by_task_id(task_id)
+{
+	
+	
+	$("#tasks").accordion( "refresh" );
+	$("#story"+task_id).html("");
+	//get task info :
+	$.getJSON(FullDate+"/projects/"+pr_id+"/tasks/"+task_id+"/task_info.json", function(jsonTaskInfo) {
+		
+		var pre_task_info_html="<div class='task_info'>";
+		var after_task_info_html="</div>";
+		var task_info_html="<p>Created: "+jsonTaskInfo.data.created_at+"</p><p>Modified: "+jsonTaskInfo.data.modified_at+"</p>";
+		
+		
+		if(jsonTaskInfo.data.due_on!=null)
+			{task_info_html+="<p>Due date:"+jsonTaskInfo.data.due_on+"</p>";}
+			
+		if(jsonTaskInfo.data.assignee!=null)
+			{task_info_html+="<p>Assignee to: "+jsonTaskInfo.data.assignee.name+"</p>";}
+		
+		if(jsonTaskInfo.data.notes!="")
+			{task_info_html+="<p>Description: "+jsonTaskInfo.data.notes+"</p>";}
+			
+		
+		
+		if(jsonTaskInfo.data.followers.length>0)
+			{
+				task_info_html+="<p>Followers: ";
+				for(var t_f_i=0; t_f_i<jsonTaskInfo.data.followers.length; t_f_i++)
+				{
+					task_info_html+=jsonTaskInfo.data.followers[t_f_i].name+"; ";
+				}
+				task_info_html+="</p>"
+			}
+		
+				
+		$("#story"+task_id).prepend(pre_task_info_html+task_info_html+after_task_info_html);
+		
+		//console.log(jsonTaskInfo.data);
+	
+	}).fail(function(jqXHR, textStatus, errorThrown) { alert('Task info not found! ' + textStatus); });
+	
+	
+	$.getJSON(FullDate+"/projects/"+pr_id+"/tasks/"+task_id+"/stories.json", function(json) {
+		
+		//$("#story"+task_id).html("");
+		
+		//$('#tasks').html("");
+		if(json.data.length>0)
+		{
+			for(var t_i=0; t_i<json.data.length; t_i++)
+			{
+			
+				var pre_html_tags="<div class='story "+json.data[t_i].type+"' id="+json.data[t_i].id+">";
+				var after_html_tags="</div>";
+			
+				//$('#stories').append(pre_html_tags+"<b user_id="+json.data[t_i].created_by.id+">"+json.data[t_i].created_by.name+"</b>: "+json.data[t_i].html_text+after_html_tags);
+				//console.log(json.data[t_i]);
+				
+				
+				$("#story"+task_id).append(pre_html_tags+"<b user_id="+json.data[t_i].created_by.id+">"+json.data[t_i].created_by.name+"</b>: "+json.data[t_i].html_text+after_html_tags);
+				
+			}
+		}
+		else
+		{
+			$('#stories').html("Empty task.");
+		}
+		//$('#projects').html(json.data[0].name);
+			//$('#projects').append(json.data[2].name);
+		
+	}).fail(function(jqXHR, textStatus, errorThrown) { alert('Activity in task not found! ' + textStatus); });
+	
+
+}
+
+
+$('html').on('click', '.project', function (){
+
+        
+		$('#tasks').html("");
+		$('#stories').html("");
+		$(this).parent().find('.project').css('background-color','#ffffff'); //.find('.childDiv')
+		$(this).css('background-color','#A9E2F3');
+		
+		//global variable pr_id:
+		pr_id=$(this).attr("id");
+		get_task_by_project_id(pr_id);
+		
+		$("#tasks").accordion( "refresh" );
+		
+		//alert('click!'+pr_id);
+		
+		//scroll to tasks list:
+		$('html,body').animate({
+            scrollTop: $("#tasks").offset().top},
+            'slow');
+		
+    });
+	
+$('html').on('click', '.task', function (){
+	
+		$("#tasks").accordion( "refresh" );
+		
+		$('#stories').html("");
+		$(this).parent().find('.task').css('background-color','#ffffff'); //.find('.childDiv')
+		$(this).css('background-color','#A9E2F3');
+		
+		//local variable task_id:
+		var task_id=$(this).attr("id");
+		//get_task_by_project_id(pr_id);
+		//alert(task_id);
+		//alert(pr_id);
+		get_task_stories_by_task_id(task_id);
+	
+});
+
+
+
+$('html').on('click', '#calendar', function (){
+	$("#datepicker").toggle();
+});
+
+
+$('html').on('click', '#send_post_request', function (){
+	
+	//console.log("sssssssss")
+	
+	//Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
+	
+});
+
+
+	
+</script>
+
+
+
+
+<html>
+<span id="calendar" class="ui-icon ui-icon-calendar"></span>
+<!-- 
+<table border='0' width="100%">
+	<tr>
+		<td colspan="3">
+			<div id="datepicker" align='left'></div>
+		</td>
+		<tr></tr>
+
+		<td width="20% !important;" valign="top">
+		<div style="width:100% !important;">
+			<div id="projects"></div>
+		</div>
+		</td>
+		<td width="80% !important;" valign="top">
+		<div style="width:100% !important;">
+			<div id="tasks"></div>
+		</div>
+		</td>
+		<td valign="top">
+			
+		</td>
+	</tr>
+	<tr>
+		<td colspan="3">
+			<center><img src='asana_logo.png'></img></center>
+		</td>
+	</tr>
+</table>
+-->
+
+
+<!-- <div id="send_post_request"> POST </div> -->
+
+
+	<div id="datepicker" align='left'></div>
+	<div id="LoadedDate" align='right'></div>
+		<div style="width:24% !important; float: left;">
+			<div id="projects"></div>
+		</div>
+		
+		
+		<div style="width:74% !important; float: right;">
+			<div id="tasks"></div>
+		</div>
+		<center><img src='asana_logo.png'></img></center>
+		
+
+		<div class="loader">Loading...</div>
+
+</html>
