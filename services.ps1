@@ -1,5 +1,5 @@
 ﻿# Example of usage: 
-# install-service.ps1 -Type Stop -ServiceName Jenkins -WorkDir 'C:\Temp' -ServiceUsername **** -ServicePassword ****
+# services.ps1 -Type Stop -ServiceName Jenkins -WorkDir 'C:\Temp' -ServiceUsername **** -ServicePassword ****
 
 param(
     [Parameter(Mandatory=$true)] 

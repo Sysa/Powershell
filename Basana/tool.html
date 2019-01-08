@@ -1,0 +1,72 @@
+<script src="jquery-ui-1.11.4.custom/external/jquery/jquery.js"></script>
+<script src="jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+
+<link href="jquery-ui-1.11.4.custom/jquery-ui.css" rel="stylesheet">
+
+<script>
+
+//https://app.asana.com/0/47267242322930/58158523591518 - asana can be slow
+
+
+//all streams set to one stream, to accept all variables as visible and get authorization at once;
+	$.ajaxSetup( { /* "async": false, */ beforeSend: function (xhr) {
+    xhr.setRequestHeader ("Authorization", "Basic " + btoa("YourKey" + ":" ));
+	} } );
+
+/*
+function AuthorizationFunc(xhr) {
+    xhr.setRequestHeader("Authorization", "Basic " + btoa("YourKey" + ":" ));
+};
+*/
+    //in cqg.com workspace:
+    //https://app.asana.com/api/1.0/workspaces/712734135166/typeahead?type=project&count=100&query=off
+  
+$.ajax({
+  url: 'https://app.asana.com/api/1.0/users/me?opt_fields=name',
+  //beforeSend: AuthorizationFunc,
+  success: function (response){
+	userName=response.data.name;
+	$('#userName').html("You are logged as "+userName);
+	console.log(userName);
+  },
+  dataType: 'JSON'
+}).always(function (ajaxdata) {console.log(ajaxdata);});
+
+$.ajax({
+  url: 'https://app.asana.com/api/1.0/teams/46031119571717/users?opt_fields=name,photo',
+  //beforeSend: AuthorizationFunc,
+  success: function (response){
+	//userName=response.data.name;
+	//$('#userName').html("You are logged as "+userName);
+	//console.log(response);
+	
+	$('#teammates').html("<img src="+response.data[0].photo.image_27x27+">");
+	
+  },
+  dataType: 'JSON'
+}).always(function (ajaxdata) {console.log(ajaxdata);});
+
+    
+/*    
+followers=47267243578246;
+followers=JSON.stringify(followers)
+
+$.ajax({
+  type: "POST",
+  url: 'https://app.asana.com/api/1.0/tasks/58158523591518/addFollowers?followers=47267243578246',
+  beforeSend: function (xhr) {
+    xhr.setRequestHeader ("Authorization", "Basic " + btoa("YourKey" + ":" ));
+	},
+  data: followers,
+  //success: success,
+  //dataType: 'JSON'
+}).always(function (ajaxdata) {console.log(ajaxdata);});
+*/
+
+
+</script>
+
+<html>
+<div id='userName'></div>
+<div id='teammates'></div>
+</html>
