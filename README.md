@@ -25,3 +25,6 @@ to stop/start/remove/install windows services, works perfect
 
 ## telnet_tester.ps1
 Mass telnet invoker
+
+## WiFiSignalStrength.ps1
+To track strength of wireless signal on your windows laptop. Just run in PS cmd and go around your office/home to determine in which area there are gaps in wi-fi network
